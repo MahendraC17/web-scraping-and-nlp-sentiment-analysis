@@ -8,14 +8,15 @@ import time
 # WebDriver
 driver = webdriver.Chrome()
 
-
+# Starting with Amazon Sign in page (Necessary)
 driver.get("https://www.amazon.co.uk/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.co.uk%2Fref%3Dnav_signin&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=gbflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0")
 
-time.sleep(1)
+time.sleep(1) # Making the process slow to mimic a human to make website know it's not a bot
 
 email = driver.find_element(By.ID, "ap_email")
 
-email.send_keys("choudharymahendra183@gmail.com")
+# Add Amazon email ID at @@@@@@
+email.send_keys("@@@@@@")
 
 driver.find_element(By.ID, "continue").click()
 
@@ -23,16 +24,25 @@ time.sleep(1)
 
 password = driver.find_element(By.ID, "ap_password")
 
-password.send_keys("Ch0udhary17")
+# Add AMazon password at xxxxx
+password.send_keys("xxxxx")
 
 driver.find_element(By.ID, "signInSubmit").click()
 
 time.sleep(1)
 
 def extract_reviews(product_url, num_reviews_to_scrape=100):
+    """
+    Function to extract the reviews after going to 'view all reviews' tab.
+    Extracts 10 review a time.
+
+    Input: Product URL ending with /asin/ and number of reviews to scrape which is 10*10 = max 100
+    Output: List of 10 reviews at a time
+    """
     driver.get(product_url)
     time.sleep(2)
     try:
+        # Looking for 'view all reviews' button
         see_all_reviews_link = driver.find_element(By.CSS_SELECTOR, 'a[data-hook="see-all-reviews-link-foot"]')
         
         driver.execute_script("arguments[0].scrollIntoView(true);", see_all_reviews_link)
@@ -43,6 +53,7 @@ def extract_reviews(product_url, num_reviews_to_scrape=100):
     except Exception as e:
         print(f"Exception occurred: {str(e)}")
     
+    # Initial empty review list which will be appended after every one pagination
     reviews = []
     while len(reviews) < num_reviews_to_scrape:
         review_elements = driver.find_elements(By.CSS_SELECTOR, '.a-section.review')
@@ -59,8 +70,10 @@ def extract_reviews(product_url, num_reviews_to_scrape=100):
             if len(reviews) >= num_reviews_to_scrape:
                 break
 
+        # Pagination for viewing more reviews        
         try:
             next_button = driver.find_element(By.CSS_SELECTOR, '.a-last a')
+            # If 'view more reviews' button exists/clickable
             if next_button.is_displayed():
                 next_button.click()
                 time.sleep(2)  
@@ -73,6 +86,9 @@ def extract_reviews(product_url, num_reviews_to_scrape=100):
     return reviews
 
 def export_csv(reviews, csv_filename='reviews_data.csv'):
+    """
+    A simple list iterater to csv extracting
+    """
     with open(csv_filename, 'w', newline='', encoding='utf-8') as csv_file:
         fieldnames = ['Author', 'Rating', 'Title',  'Review', 'Date']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -80,8 +96,11 @@ def export_csv(reviews, csv_filename='reviews_data.csv'):
         for review in reviews:
             writer.writerow({'Author': review['author'], 'Rating': review['rating'], 'Title': review['title'],  'Review': review['text'], 'Date': review['date']})
 
+# Product URl should end with a /dp/asin/
 product_url = "https://www.amazon.co.uk/Samsung-Galaxy-Android-Smartphone-Phantom/dp/B09NRRVPZ7/"
+
+# Calling the function to extract the function
 reviews_data = extract_reviews(product_url, num_reviews_to_scrape=1000)  
 
+# Writing and Exporting the CSV
 export_csv(reviews_data)
-
