@@ -2,7 +2,9 @@
 import csv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
 # WebDriver
@@ -41,8 +43,10 @@ def extract_reviews(product_url, num_reviews_to_scrape=100):
     """
     driver.get(product_url)
     time.sleep(2)
+
+    # Looking for 'view all reviews' button
     try:
-        # Looking for 'view all reviews' button
+        
         see_all_reviews_link = driver.find_element(By.CSS_SELECTOR, 'a[data-hook="see-all-reviews-link-foot"]')
         
         driver.execute_script("arguments[0].scrollIntoView(true);", see_all_reviews_link)
@@ -52,6 +56,13 @@ def extract_reviews(product_url, num_reviews_to_scrape=100):
         print("Successfully clicked the link!")
     except Exception as e:
         print(f"Exception occurred: {str(e)}")
+
+    # This block of code extracts the product name for an accurate csv name
+    try:
+        prod = driver.find_element(By.CSS_SELECTOR, 'a[data-hook="product-link"]')
+        product_name = prod.text.strip()[:30]
+    except Exception as e:
+        print("Exception at:", e)
     
     # Initial empty review list which will be appended after every one pagination
     reviews = []
@@ -83,12 +94,13 @@ def extract_reviews(product_url, num_reviews_to_scrape=100):
             break  
 
     driver.quit()
-    return reviews
+    return reviews, product_name
 
-def export_csv(reviews, csv_filename='reviews_data.csv'):
+def export_csv(reviews, product_name):
     """
     A simple list iterater to csv extracting
     """
+    csv_filename=f"{product_name}.csv"
     with open(csv_filename, 'w', newline='', encoding='utf-8') as csv_file:
         fieldnames = ['Author', 'Rating', 'Title',  'Review', 'Date']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -100,7 +112,7 @@ def export_csv(reviews, csv_filename='reviews_data.csv'):
 product_url = "https://www.amazon.co.uk/Samsung-Galaxy-Android-Smartphone-Phantom/dp/B09NRRVPZ7/"
 
 # Calling the function to extract the function
-reviews_data = extract_reviews(product_url, num_reviews_to_scrape=1000)  
+reviews_data, product_name = extract_reviews(product_url, num_reviews_to_scrape=1000)  
 
 # Writing and Exporting the CSV
-export_csv(reviews_data)
+export_csv(reviews_data, product_name)
