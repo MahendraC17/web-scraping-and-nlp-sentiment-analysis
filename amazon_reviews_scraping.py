@@ -60,7 +60,7 @@ def extract_reviews(product_url, num_reviews_to_scrape=100):
     # This block of code extracts the product name for an accurate csv name
     try:
         prod = driver.find_element(By.CSS_SELECTOR, 'a[data-hook="product-link"]')
-        product_name = prod.text.strip()[:30]
+        product_name = prod.text.strip().replace(' ', '_')[:30]
     except Exception as e:
         print("Exception at:", e)
     
