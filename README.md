@@ -1,4 +1,4 @@
-# Web Scraping of Amazon Product and Reviews Sentiment Analysis
+# Web Scraping of Amazon Product Reviews and Sentiment Analysis
 
 ## 1. Web Scraping
 - Web scraping was performed using Selenium to extract Amazon product reviews. The script navigates through 10 pages of reviews using CSS selectors, fetching 100 reviews with ratings ranging from 1 to 5. The scraped data was exported to a CSV file named after the product.
